@@ -20,6 +20,7 @@ caMonitor_LIBS  += taos
 caMonitor_LIBS  += aws-cpp-sdk-core
 caMonitor_LIBS  += aws-cpp-sdk-s3
 caMonitor_LIBS  += hdf5
+caMonitor_LIBS  += zmq
 OPT_CFLAGS_YES += -g
 OPT_CXXFLAGS_YES += -std=c++11
 OPT_CXXFLAGS_YES += -g

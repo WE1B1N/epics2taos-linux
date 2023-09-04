@@ -71,7 +71,9 @@ linklist_error writearray(HASH_TABLE *pvtable, char *pvname,ARRAY_DATA data)
                     plist->pdata_tail = newdataelement;  
                 }
                 flag_pvname_matched = true;
-                plist->arraycount = plist->arraycount + 1;          //-----------记录数据数量-------------20230902
+                plist->currentsize = plist->currentsize + 1;          //-----------记录数据数量-------------20230902
+                //---------------在数组数量达到阈值时，给编码线程发消息----------------------------------
+                
             }     
             plist = plist->next;
         } 
@@ -85,7 +87,7 @@ linklist_error writearray(HASH_TABLE *pvtable, char *pvname,ARRAY_DATA data)
             newdataelement->previous = NULL;
             newdataelement->next = NULL;
             newdataelement->data = data;     
-            plist->arraycount = 1;                                  //----------初始记录数量-------------20230902            
+            plist->currentsize = 1;                                  //----------初始记录数量-------------20230902            
             plist->pdata_head = newdataelement;  
             plist->pdata_tail = newdataelement;
         }    

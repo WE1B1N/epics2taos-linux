@@ -82,7 +82,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "s3.h": "c",
-        "outcome.h": "c"
+        "outcome.h": "c",
+        "zmq.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

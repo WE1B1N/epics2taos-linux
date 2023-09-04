@@ -278,7 +278,9 @@ int main(int argc,char **argv)
     //     //pmynode[i]->isConnected = 0;
     //     printf("pmynode[%d] address in main func = %p\n", i, pmynode[i]);      
     // }
+    
     //-------------------------------hdf test-----------------------------
+    /* 
     hid_t file_id, dataset_id, dataspace_id;
     hsize_t dims[2] = {2, 2};
     int data[2][2] = {{11, 12}, {21, 22}};
@@ -291,7 +293,9 @@ int main(int argc,char **argv)
     H5Dclose(dataset_id);
     H5Sclose(dataspace_id);
     H5Fclose(file_id); 
+    */
     //-------------------------------hdf test----------------------------- 
+    
     Archiver->nodelist = pmynode;
     Archiver->nPv = npv;
     printf("Setup monitor!\n");

@@ -15,7 +15,7 @@
 
 #define HASH_TABLE_LENGTH 100000
 
-typedef struct linklist
+typedef struct array_data
 {
     long                type;                    // 数组单元的数据类型
     long                count;                   // 数组的长度
@@ -60,6 +60,6 @@ linklist_error arraybuffer_initial(HASH_TABLE * pvtable);
 ARRAY_DATA readarray(HASH_TABLE *pvtable,char * pvname);            //pbuff，指向数据指针的指针
 linklist_error writearray(HASH_TABLE *pvtable, char * pvname, ARRAY_DATA data);
 
-ARRAY_DATA readarray_ts(HASH_TABLE *pvtable,char * pvname);            //zero-copy read
+ARRAY_DATA readarray_ts(HASH_TABLE *pvtable,char * pvname);            //zero-copy read    用完之后，一定要释放pdata指针
 linklist_error writearray_ts(HASH_TABLE *pvtable, char * pvname, ARRAY_DATA data);   //zero-copy write
 linklist_error writearray_epics(HASH_TABLE *pvtable, struct event_handler_args eha);   
