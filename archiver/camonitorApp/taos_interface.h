@@ -35,8 +35,9 @@ typedef struct {
 int Pv2TD(TAOS * taos,ARCHIVE_ELEMENT data);
 int Pv2TD_bind(TAOS * taos,ARCHIVE_ELEMENT data);
 int PVStatus2TD(TAOS * taos, pv * data, int status);
+//int HB2TD(TAOS * taos, int callBackCounts, int nPVOnline, int nPVOffline, int mode);
 int HB2TD(TAOS * taos, int callBackCounts, int nPVOnline, int nPVOffline);
-void PvArray2TD(TAOS * taos, unsigned long ts, char* pvname, long type, long count, char* status, char* sev);
+void PvArray2TD(TAOS * taos, unsigned long ts, char* pvname, long type, long count, char* status, char* sev, unsigned long midnight_ts);
 
 inline epicsUInt16 dbr2taosbind(TAOS_BIND *values, ARCHIVE_ELEMENT data);    //如果不用内联函数时间戳就计算不对
 

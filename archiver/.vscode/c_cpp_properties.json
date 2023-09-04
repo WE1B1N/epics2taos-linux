@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/weibin/EPICS/epics-base/**"
+                "/home/centos/EPICS/epics-base/**"
             ],
             "defines": [
                 ""

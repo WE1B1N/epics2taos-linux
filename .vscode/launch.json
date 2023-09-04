@@ -4,11 +4,12 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/zheng1/EPICS/epics-base/**"
+                "/home/centos/EPICS/epics-base/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

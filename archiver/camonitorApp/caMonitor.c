@@ -13,6 +13,7 @@
 #include "archiver.h"
 #include <epicsTime.h>
 #include <epicsString.h>
+#include "hdf5.h"
 
 
 
@@ -94,14 +95,15 @@ static void eventCallback(struct event_handler_args eha)
 {
     
     pv* pv = eha.usr;
-    void *test = eha.dbr;
+    //void *test = eha.dbr;
     //--------------------------------------
     //通过这个pv指针，可以用来存储特定pv通道的统计信息
     //--------------------------------------
     pv->status = eha.status; 
+    //printf("pvname:%s, status:%d, count:%d\n", pv->name, eha.status, eha.count);
     if (eha.status == ECA_NORMAL)
     { 
-        pv->callbackCounts++; 
+         
         //pv->dbrType = eha.type;
             //pv->nElems = eha.count;
             //pv->value = (void *) eha.dbr;    /* casting away const */
@@ -110,9 +112,10 @@ static void eventCallback(struct event_handler_args eha)
             //fflush(stdout);
             //pv->value = NULL;archive_arraypv
         //archive_pv(eha); 
-         
+        pv->callbackCounts++; 
         if (eha.count > 1)
         {
+            //pv->callbackCounts2++; 
             //void * pvalue = dbr2parray(eha.dbr,eha.type);
             size_t dbrsize = dbr_size_n(eha.type, eha.count);
             time_t t = time(NULL);
@@ -122,24 +125,26 @@ static void eventCallback(struct event_handler_args eha)
             char *sev = dbr2sev(eha.dbr, eha.type);
             epicsTimeStamp ets = dbr2ts(eha.dbr, eha.type);
             uint64_t taosts = epicsTime2int(ets);
+            time_t midnight_ts = get_midnight_ts(epicsTime2UnixTime(ets));
+            //printf("midnight time: %ld\n", t1);
             //printf("pvname:%s\nstatus:%s\nseverity:%s\ntimestamps:%lu\n", pvname, status, severity, taosts);
 
             //s3_upload(Archiver->s3client, eha.dbr, pvname, dbrsize, taosts);
             //void *buff=malloc(dbrsize);
             //memcpy(buff,eha.dbr,dbrsize);
-            s3_upload_asyn(Archiver->s3client, eha.dbr, pvname, dbrsize, taosts);
-            PvArray2TD(Archiver->taos, taosts, pvname, eha.type, eha.count, status, sev);
+            s3_upload_asyn(Archiver->s3client, eha.dbr, pvname, dbrsize, taosts, midnight_ts);
+            PvArray2TD(Archiver->taos, taosts, pvname, eha.type, eha.count, status, sev, midnight_ts);
             //free(buff);
             /*
             int i = 0;
             for (i = 0; i < 10; i++) {
-                //printf("test%d:%f\n", i, ((struct dbr_time_double*)(&eha.dbr[ 8 * i]))->value);//测试
-                
+                //printf("test%d:%f\n", i, ((struct dbr_time_double*)(&eha.dbr[ 8 * i]))->value);//测试                
             } 
             */ 
         }  else {
+            //pv->callbackCounts1++;
             archive_pv(eha);
-        }              
+        } 
     } 
 }
 
@@ -273,7 +278,20 @@ int main(int argc,char **argv)
     //     //pmynode[i]->isConnected = 0;
     //     printf("pmynode[%d] address in main func = %p\n", i, pmynode[i]);      
     // }
-   
+    //-------------------------------hdf test-----------------------------
+    hid_t file_id, dataset_id, dataspace_id;
+    hsize_t dims[2] = {2, 2};
+    int data[2][2] = {{11, 12}, {21, 22}};
+
+    file_id  = H5Fcreate("hdftest.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    dataspace_id = H5Screate_simple(2, dims, NULL);
+    dataset_id = H5Dcreate2(file_id, "/dataset", H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+
+    H5Dclose(dataset_id);
+    H5Sclose(dataspace_id);
+    H5Fclose(file_id); 
+    //-------------------------------hdf test----------------------------- 
     Archiver->nodelist = pmynode;
     Archiver->nPv = npv;
     printf("Setup monitor!\n");

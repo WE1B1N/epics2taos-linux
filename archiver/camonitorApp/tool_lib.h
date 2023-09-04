@@ -80,6 +80,8 @@ typedef struct
     char onceConnected;
     evid evid;
     int callbackCounts;         //每次eventCallback调用时，将这个值加一。这个值可以用来统计不同PV的带宽占用比例。
+    //int callbackCounts1;        //callbackCounts1统计数组长度为1的pv的回调次数
+    //int callbackCounts2;        //callbackCounts1统计数组长度大于1的pv的回调次数
     int isConnected;
 } pv;
 
@@ -111,7 +113,9 @@ extern char val_char(const void *v, unsigned type, int index);
 extern int val_int(const void *v, unsigned type, int index);
 extern long val_long(const void *v, unsigned type, int index);
 extern void *dbr2parray (const void *value, unsigned type);
-extern unsigned long int epicsTime2int(epicsTimeStamp ts);
+extern unsigned long int epicsTime2int(epicsTimeStamp ts);//nanao seconds
+extern time_t epicsTime2UnixTime(epicsTimeStamp ts);// seconds
+extern  time_t get_midnight_ts(time_t ts);
 /*
  * no additions below this endif
  */

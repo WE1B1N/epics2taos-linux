@@ -58,7 +58,7 @@ int PVStatus2TD(TAOS * taos, pv * ppv, int status)
 
         if(errno == -2147482752) {//"Database not specified or available"，建库并且建超级表，之后再执行一遍插入
             printf("Database not specified or available\n");
-            result = taos_query(Archiver->taos, "create database if not exists status;");
+            result = taos_query(Archiver->taos, "create database if not exists status keep 90;");
             taos_free_result(result);
             printf("Database status created!\n");
             result = taos_query(Archiver->taos, "use status;");
@@ -239,6 +239,7 @@ int Pv2TD(TAOS * taos, ARCHIVE_ELEMENT data)
     
 }
 
+//int HB2TD(TAOS * taos, int callBackCounts, int nPvOn, int nPvOff, int mode)
 int HB2TD(TAOS * taos, int callBackCounts, int nPvOn, int nPvOff)
 {   
     TAOS_RES* result;
@@ -250,12 +251,14 @@ int HB2TD(TAOS * taos, int callBackCounts, int nPvOn, int nPvOff)
     epicsTimeToStrftime(timeText, 28, timeFormatStr, &tsNow);
     char sql[256];
     char* errstr;
-    
-
-    
     sprintf(sql, "insert into monitor.monitor_pv values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
-
-    
+    /*
+    if(mode == 1) {
+        sprintf(sql, "insert into monitor.monitor_pv1 values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
+    } else {
+        sprintf(sql, "insert into monitor.monitor_pv2 values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
+    }
+    */
     result = taos_query(Archiver->taos, sql);
     int errno = taos_errno(result);
     if (result == NULL || errno != 0) {//如果taos_errno返回0说明执行成功
@@ -265,32 +268,72 @@ int HB2TD(TAOS * taos, int callBackCounts, int nPvOn, int nPvOff)
 
         if(errno == -2147482752) {//"Database not specified or available"，建库并且建超级表，之后再执行一遍插入
             printf("Database not specified or available\n");
-            result = taos_query(Archiver->taos, "create database if not exists monitor;");
+            result = taos_query(Archiver->taos, "create database if not exists monitor keep 90;");
             taos_free_result(result);
             printf("Database monitor created!\n");
             result = taos_query(Archiver->taos, "use monitor;");
             taos_free_result(result);
             printf("Using database monitor...\n");
+            /*
+            if(mode == 1) {
+                result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor_pv1(ts TIMESTAMP, callbackcounts INT, npvon  INT, npvoff INT);");
+                taos_free_result(result);
+                printf("Table monitor_pv1 created!\n");
+            } else {
+                result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor_pv2(ts TIMESTAMP, callbackcounts INT, npvon  INT, npvoff INT);");
+                taos_free_result(result);
+                printf("Table monitor_pv2 created!\n");
+            }
+            */
+            
             result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor_pv(ts TIMESTAMP, callbackcounts INT, npvon  INT, npvoff INT);");
             taos_free_result(result);
             printf("Table monitor_pv created!\n");
             result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor(ts TIMESTAMP, status INT);");
             taos_free_result(result);
+            /*
+            if(mode == 1) {
+                sprintf(sql, "insert into monitor.monitor_pv1 values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
+            } else {
+                sprintf(sql, "insert into monitor.monitor_pv2 values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
+            }
+            */
             sprintf(sql, "insert into monitor.monitor_pv values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
             result = taos_query(Archiver->taos, sql);
             errno = taos_errno(result);
+            taos_free_result(result);
         } 
         if(errno == -2147482782) {//"Table does not exist"，有库没表，建超级表，之后再执行一次插入
             printf("Table does not exist\n");
             result = taos_query(Archiver->taos, "use monitor;");
             taos_free_result(result);
             printf("Using database monitor...\n");
-            result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor_pv(ts TIMESTAMP, callbackcounts BIGINT, npvon  INT, npvoff INT);");
+            /*
+            if(mode == 1) {
+                result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor_pv1(ts TIMESTAMP, callbackcounts INT, npvon  INT, npvoff INT);");
+                taos_free_result(result);
+                printf("Table monitor_pv1 created!\n");
+            } else {
+                result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor_pv2(ts TIMESTAMP, callbackcounts INT, npvon  INT, npvoff INT);");
+                taos_free_result(result);
+                printf("Table monitor_pv2 created!\n");
+            }
+            */
+            
+            result = taos_query(Archiver->taos, "CREATE TABLE IF NOT EXISTS monitor_pv(ts TIMESTAMP, callbackcounts INT, npvon  INT, npvoff INT);");
             taos_free_result(result);
             printf("Table monitor_pv created!\n");
+            /*
+            if(mode == 1) {
+                sprintf(sql, "insert into monitor.monitor_pv1 values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
+            } else {
+                sprintf(sql, "insert into monitor.monitor_pv2 values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
+            }
+            */
             sprintf(sql, "insert into monitor.monitor_pv values (\'%s\', %d, %d, %d) \n" , timeText, callBackCounts, nPvOn, nPvOff);
             result = taos_query(Archiver->taos, sql);
             errno = taos_errno(result);
+            taos_free_result(result);
         }
 
         //exit(1);
@@ -343,7 +386,7 @@ void checkResult(int errno, char* sql1, char* sql2) {
     char sql[265];
     if(errno == -2147482752) {//"Database not specified or available"，建库并且建超级表，之后再执行一遍插入
         printf("Database not specified or available\n");
-        result = taos_query(Archiver->taos, "create database if not exists pvs precision 'ns';");
+        result = taos_query(Archiver->taos, "create database if not exists pvs precision 'ns' keep 90;");
         taos_free_result(result);
         printf("Database pvs created!\n");
         result = taos_query(Archiver->taos, "use pvs;");
@@ -504,7 +547,7 @@ int Pv2TD_bind(TAOS * taos,ARCHIVE_ELEMENT data)
         if (code != 0) {
             //database not exist
             printf("Database not specified or available\n");
-            result = taos_query(Archiver->taos, "create database if not exists pvs precision 'ns';");
+            result = taos_query(Archiver->taos, "create database if not exists pvs precision 'ns' keep 90;");
             taos_free_result(result);
             printf("Database pvs created!\n");
             result = taos_query(Archiver->taos, "use pvs;");
@@ -596,12 +639,12 @@ int Pv2TD_bind(TAOS * taos,ARCHIVE_ELEMENT data)
     //taos_stmt_close(stmt[data.type]);
 }
 
-void PvArray2TD(TAOS * taos, unsigned long ts, char* pvname, long type, long count, char* status, char* sev)
+void PvArray2TD(TAOS * taos, unsigned long ts, char* pvname, long type, long count, char* status, char* sev, unsigned long midnight_ts)
 {
     TAOS_RES* result;
     char sql[256];
     char* errstr;
-    sprintf(sql, "insert into s3ref.`%s` using s3ref.pvref tags(0) values (%lu, %lu, %lu, \'%s\', \'%s\'); \n ", pvname, ts, type, count, status, sev);
+    sprintf(sql, "insert into s3ref.`%s` using s3ref.pvref tags(0) values (%lu, %lu, %lu, \'%s\', \'%s\', %lu); \n ", pvname, ts, type, count, status, sev, midnight_ts);
 
     
     result = taos_query(Archiver->taos, sql);
@@ -612,13 +655,13 @@ void PvArray2TD(TAOS * taos, unsigned long ts, char* pvname, long type, long cou
         taos_free_result(result);
         if(errno == -2147482752) {//"Database not specified or available"，建库并且建超级表，之后再执行一遍插入
             printf("Database not specified or available\n");
-            result = taos_query(Archiver->taos, "create database if not exists s3ref precision 'ns';");
+            result = taos_query(Archiver->taos, "create database if not exists s3ref precision 'ns' keep 90;");
             taos_free_result(result);
             printf("Database s3ref created!\n");
             result = taos_query(Archiver->taos, "use s3ref;");
             taos_free_result(result);
             printf("Using database s3ref...\n");
-            result = taos_query(Archiver->taos, "create stable if not exists pvref(ts TIMESTAMP, type BIGINT, count BIGINT, status NCHAR(20), severity NCHAR(20)) tags(groupId INT);");
+            result = taos_query(Archiver->taos, "create stable if not exists pvref(ts TIMESTAMP, type BIGINT, count BIGINT, status NCHAR(20), severity NCHAR(20), bucket BIGINT) tags(groupId INT);");
             taos_free_result(result);
             printf("Stable pvref created!\n");
             result = taos_query(Archiver->taos, "use pvs;");
@@ -633,7 +676,7 @@ void PvArray2TD(TAOS * taos, unsigned long ts, char* pvname, long type, long cou
             result = taos_query(Archiver->taos, "use s3ref;");
             taos_free_result(result);
             printf("Using database s3ref...\n");
-            result = taos_query(Archiver->taos, "create stable if not exists pvref(ts TIMESTAMP, type BIGINT, count BIGINT, status NCHAR(20), severity NCHAR(20)) tags(groupId INT);");
+            result = taos_query(Archiver->taos, "create stable if not exists pvref(ts TIMESTAMP, type BIGINT, count BIGINT, status NCHAR(20), severity NCHAR(20), bucket BIGINT) tags(groupId INT);");
             taos_free_result(result);
             printf("Stable pvref created!\n");
             result = taos_query(Archiver->taos, "use pvs;");

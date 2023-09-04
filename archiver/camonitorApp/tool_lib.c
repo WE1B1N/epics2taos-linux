@@ -798,3 +798,25 @@ unsigned long int epicsTime2int(epicsTimeStamp ts)
 
     return taos_ts;
 }
+
+extern time_t epicsTime2UnixTime(epicsTimeStamp ts)
+{
+    time_t unixtime = ts.secPastEpoch + 631152000;
+    return unixtime;
+}
+
+extern  time_t get_midnight_ts(time_t ts)
+{
+    struct tm *tm;
+    time_t midnight_ts;
+
+    tm = localtime(&ts);
+    tm->tm_hour = 0;
+    tm->tm_min = 0;
+    tm->tm_sec = 0;
+
+    midnight_ts = mktime(tm);
+    return midnight_ts;
+}
+
+

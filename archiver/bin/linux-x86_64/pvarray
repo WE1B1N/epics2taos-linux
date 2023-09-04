@@ -1,5 +1,3 @@
-BL:SP:Line:Y
-C13440:wavelength_intensity
 DEF:PRF0:CAL:ProfileCentroidX_RBV
 DEF:PRF0:CAL:ProfileCentroidY_RBV
 DEF:PRF1:CAL:ProfileCentroidX_RBV
@@ -120,7 +118,7 @@ UD-BI:PRF12:RAW:ArrayData
 UD-BI:PRF12:IMG:ArrayData
 UD-BI:PRFB1:RAW:ArrayData
 UD-BI:PRFB1:IMG:ArrayData
-DEF:PRF0:RAW:ArrayData
+DEF:PRF0:RAW:ArrayD
 DEF:PRF0:IMG:ArrayData
 DEF:PRF1:RAW:ArrayData
 DEF:PRF1:IMG:ArrayData
@@ -135,7 +133,7 @@ UD2-BI:PRF1:IMG:ArrayData
 UD2-BI:PRF2:RAW:ArrayData
 UD2-BI:PRF2:IMG:ArrayData
 UD2-BI:PRF3:RAW:ArrayData
-UD2-BI:PRF3:IMG:ArrayData
+UD2-BI:PRF3:IMG:ArrayData]
 UD2-BI:PRF4:RAW:ArrayData
 UD2-BI:PRF4:IMG:ArrayData
 UD2-BI:PRF5:RAW:ArrayData
@@ -152,3 +150,6 @@ UD2-BI:PRF10:RAW:ArrayData
 UD2-BI:PRF10:IMG:ArrayData
 UD2-BI:PRFB1:RAW:ArrayData
 UD2-BI:PRFB1:IMG:ArrayData
+BL:SP:Line:Y
+C13440:wavelength_intensit
+

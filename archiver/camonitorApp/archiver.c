@@ -10,6 +10,7 @@
 #include "time.h"
 #include "loadConfig.h"
 
+
 #define MAX_BUF_LEN 1024
 #define MAX_KEY_LEN 64
 #define MAX_VAL_LEN 256
@@ -137,12 +138,16 @@ ARCHIVE_ERROR archiver_monitor_thread(ARCHIVER *archiver)
     pvlisthead = archiver->nodelist;
     //printf("pvlisthead in archiver_monitor_thread = %p\n\n\n\n",  pvlisthead);
     int i;
+    
+    
     while (true)
+
     {
-        //*************************************************************************
+        //************/*************************************************************
         //将数据采集进程的状态写入数据库。。上层软件可以可以根据这个统计信息了解数据采集进程的状态。
         //这个也作为采集系统的心跳。。如果心跳数据不正常。。上层软件可以通过管理程序重启采集进程
         //**************************************************************************
+        
         for (i = 0; i < npv; i++)
         {
             //printf("pvlisthead[%d] in archiver_monitor_thread = %p\n\n", i, pvlisthead[i]);
@@ -161,8 +166,11 @@ ARCHIVE_ERROR archiver_monitor_thread(ARCHIVER *archiver)
         //printf("callBackCounts-2 %d\n\n", callBackCounts);
         nPvOn = 0;
         nPvOff = 0;
+        
         sleep(10); //等待10秒
     }
+    
+    
     
 }
 

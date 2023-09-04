@@ -28,7 +28,7 @@ bool ListBuckets(const Aws::S3::S3Client& s3Client) {
         return true;
     }
     else {
-        std::cout << "ListBuckets error:\n"<< outcome.GetError() << std::endl << std::endl;
+        std::cout << "ListBuckets error:\n"<< outcome.GetError().GetMessage() << std::endl << std::endl;
 
         return false;
     }
@@ -50,16 +50,44 @@ bool CreateBucket(const Aws::S3::S3Client& s3Client, const Aws::String& bucketNa
 
     //     request.SetCreateBucketConfiguration(bucket_config);
     // }
+    /*
+    
+    Aws::S3::Model::LifecycleRule rule;
+    
+    Aws::S3::Model::LifecycleRuleFilter lcrf;
+    lcrf.SetPrefix("none");
+    
+    rule.SetID(bucketName);
+    rule.SetFilter(lcrf);
+    rule.SetStatus(Aws::S3::Model::ExpirationStatus::Enabled);
 
+    Aws::S3::Model::LifecycleExpiration expiration;
+    expiration.SetDays(30);
+    rule.SetExpiration(expiration);
+
+    Aws::S3::Model::BucketLifecycleConfiguration blccfg;
+    blccfg.AddRules(rule);
+
+    Aws::S3::Model::PutBucketLifecycleConfigurationRequest req;
+    req.SetBucket(bucketName);
+    req.SetLifecycleConfiguration(blccfg);    
+    */
     Aws::S3::Model::CreateBucketOutcome outcome = s3Client.CreateBucket(request);
 
     if (outcome.IsSuccess()) {
         std::cout << "Bucket created." << std::endl << std::endl;
-
+        //AddLifecycle(s3Client, bucketName);
+        //auto outcome1 = s3Client.PutBucketLifecycleConfiguration(req);
+        //if(outcome1.IsSuccess()) {
         return true;
+        //} else {
+            //return false;
+        //}
+
+        
     }
     else {
-        std::cout << "CreateBucket error:\n" << outcome.GetError() << std::endl << std::endl;
+        std::cout << "CreateBucket error:\n" << outcome.GetError().GetMessage() << std::endl << std::endl;
 
         return false;
     }
@@ -81,7 +109,7 @@ bool DeleteBucket(const Aws::S3::S3Client& s3Client, const Aws::String& bucketNa
         return true;
     }
     else {
-        std::cout << "DeleteBucket error:\n" << outcome.GetError() << std::endl << std::endl;
+        std::cout << "DeleteBucket error:\n" << outcome.GetError().GetMessage() << std::endl << std::endl;
 
         return false;
     }
@@ -112,11 +140,12 @@ bool PutObjectFile(const Aws::S3::S3Client& s3Client, const Aws::String& bucketN
         return true;
     }
     else {
-        std::cout << "PutObject error:\n" << outcome.GetError() << std::endl << std::endl;
+        std::cout << "PutObject error:\n" << outcome.GetError().GetMessage() << std::endl << std::endl;
         return false;
     }
 }
 
+/*
 bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *dbr, size_t dbrsize){
     std::cout << "Putting object: \"" << objectKey << "\" to bucket: \"" << bucketName << "\" ..." << std::endl;
 
@@ -129,10 +158,8 @@ bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketNa
     auto data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream", std::stringstream::in | std::stringstream::out | std::stringstream::binary);
     
     data->write(static_cast<char*>(dbr), dbrsize);
-    
 
     request.SetBody(data);
-
 
     auto outcome = s3Client.PutObject(request);
     if (outcome.IsSuccess()) {
@@ -140,11 +167,12 @@ bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketNa
         return true;
     }
     else {
-        std::cout << "PutObject error:\n" << outcome.GetError() << std::endl << std::endl;
+        std::cout << "PutObject error:\n" << outcome.GetError().GetMessage() << std::endl << std::endl;
         return false;
     }
 
 }
+*/
 
 
 bool PutObjectDbrAsync(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *dbr, size_t dbrsize){
@@ -173,16 +201,16 @@ bool PutObjectDbrAsync(const Aws::S3::S3Client& s3Client, const Aws::String& buc
     std::shared_ptr<Aws::Client::ArchiveContext> context =
             Aws::MakeShared<Aws::Client::ArchiveContext>("PutObjectAllocationTag");
     //context->SetBuffPointer(dbr);
-
+    //context->SetUUID(objectKey);
     //start_time = clock(); // 记录开始时间
 
-   s3Client.PutObjectAsync(request, PutObjectAsyncFinished, context);
-
+    s3Client.PutObjectAsync(request, PutObjectAsyncFinished, context);
 
     return true;
 
 }
 
+/*
 // Get the Amazon S3 object from the bucket.
 void* GetObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey) {
 
@@ -220,14 +248,11 @@ void* GetObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketN
         } else {
             std::cout << "Unable to open file" << std::endl;
         }
-        
-        file.close();
-       
-        
+        file.close();      
         int bufsize = 96;
         char cbuf[96] = {0};
         std::streamsize count  = buf->sgetn(cbuf, bufsize);
-         /*
+         
         auto& object_stream = outcome.GetResultWithOwnership().GetBody();
         auto object_size = object_stream.tellg();
         object_stream.seekg(0, std::ios::beg);
@@ -238,14 +263,11 @@ void* GetObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketN
         //std::streamsize size = 96;
         //sstream.read(result, size);
         return object_data;
-        */
-        return 0;
         
-
-        
+        return 0;        
     }
     else {
-        std::cout << "GetObject error:\n" << outcome.GetError() << std::endl << std::endl;
+        std::cout << "GetObject error:\n" << outcome.GetError().GetMessage() << std::endl << std::endl;
         return 0;
     }
 
@@ -259,9 +281,8 @@ void* GetObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketN
 
     // void* object_data = static_cast<void*>(buffer_data);
     // return object_data;
-    
-
 }
+*/
 
 // Delete the Amazon S3 object from the bucket.
 bool DeleteObject(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey) {
@@ -280,7 +301,7 @@ bool DeleteObject(const Aws::S3::S3Client& s3Client, const Aws::String& bucketNa
         return true;
     }
     else {
-        std::cout << "DeleteObject error:\n" << outcome.GetError() << std::endl << std::endl;
+        std::cout << "DeleteObject error:\n" << outcome.GetError().GetMessage() << std::endl << std::endl;
 
         return false;
     }
@@ -309,6 +330,7 @@ void * s3Client_init(){
     char *endpoint = getInfo_configFile("s3_endpoint", info, lines);
     char *ak = getInfo_configFile("s3_accesskey", info, lines);
     char *sk = getInfo_configFile("s3_secretkey", info, lines);
+    //std::cout << endpoint << ak << sk << std::endl;
 
     Aws::Client::ClientConfiguration cfg;
     cfg.endpointOverride = endpoint;
@@ -331,13 +353,15 @@ void * s3Client_init(){
 
     //Aws::Vector<Aws::String> endpointList = {"172.16.0.171:9000", "172.16.0.172:9000", "172.16.0.173:9000"};
     
-    Aws::S3::S3Client *s3Client = new Aws::S3::S3Client(cred, cfg, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never, true);
+    Aws::S3::S3Client *s3Client = new Aws::S3::S3Client(cred, cfg, false, false);
+    
     //Aws::S3::S3Client *s3Client = new Aws::S3::S3Client(cfg, Aws::MakeShared<Aws::S3::RoundRobinLBStrategy>("s3-lb-strategy", endpointList));
     void *s3Client_ptr = s3Client;
     return s3Client_ptr; 
    
 }
 
+/*
 void s3_upload(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsigned long time) {
 
 
@@ -356,22 +380,26 @@ void s3_upload(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsign
     //}    
 
     Aws::String object_key;
-    object_key = pvname + std::to_string(time);
+    object_key = Aws::String((pvname + std::to_string(time)).c_str());
     //std::cout << object_key << std::endl << std::endl;
     //Aws::String bucket_name = "my-bucket";
 
     bool outcome = PutObjectDbr(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name, object_key, dbr, dbrsize);
 }
+*/
 
 
-void s3_upload_asyn(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsigned long time) {
+void s3_upload_asyn(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsigned long time, unsigned long midnight_ts) {
     Aws::S3::Model::PutObjectRequest request;
 
    // Aws::S3::Model::BucketLocationConstraint locConstraint = Aws::S3::Model::BucketLocationConstraintMapper::GetBucketLocationConstraintForName(region);
 
     Aws::String bucket_name;
-
+    bucket_name =  Aws::String(std::to_string(midnight_ts).c_str());
+    
+    /*
     long unixts = time / 1000000000;
+    
     //全局变量time1在进程启动后第一次上传数据时赋值，time2在该值的基础上加86400，即一天的秒数
     //如果最新的数据时间不超过time2，即为在同一天内的数据，上传到同一个bucket内；否则上传到新bucket，并更新time1
     if(time1 == NULL) {
@@ -379,21 +407,36 @@ void s3_upload_asyn(void *s3Client, void * dbr, char * pvname, size_t dbrsize, u
     }
     long time2 = time1 + 86400;
     if(unixts >= time2) {
-        bucket_name = "ts" + std::to_string(unixts);
+        bucket_name = Aws::String(("ts" + std::to_string(unixts)).c_str());
         time1 = unixts;
     } else {
-        bucket_name = "ts" + std::to_string(time1);
+        bucket_name = Aws::String(("ts" + std::to_string(time1)).c_str());
     }
+    */
+
     Aws::S3::Model::HeadBucketRequest hbr;
     hbr.SetBucket(bucket_name);
 
-    //如果bucket不存在，先创建bucket
-    if(!(*static_cast<Aws::S3::S3Client *>(s3Client)).HeadBucket(hbr).IsSuccess()){
-       CreateBucket(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name);
+    //测试往桶ts1687833328添加生命周期
+    //Aws::String str = "ts1687833328";
+    //AddLifecycle(*static_cast<Aws::S3::S3Client *>(s3Client), str);
+
+    //使用HeadBucket判断bucket是否存在，如果bucket不存在，先创建
+
+    if(!(*static_cast<Aws::S3::S3Client *>(s3Client)).HeadBucket(hbr).IsSuccess()){    
+        CreateBucket(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name);
+        /*
+        if(CreateBucket(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name)) {
+        //如果成功创建新桶，往桶内添加生命周期规则，默认bucket lifecycle: 30d
+        //AddLifecycle(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name);
+        }  
+        */
+           
     }    
 
     Aws::String object_key;
-    object_key = pvname + std::to_string(time);
+    object_key = Aws::String((pvname + std::to_string(time)).c_str());
+
     //std::cout << object_key << std::endl << std::endl;
     //Aws::String bucket_name = "my-bucket";
     //std::unique_lock<std::mutex> lock(upload_mutex);
@@ -405,25 +448,30 @@ void s3_upload_asyn(void *s3Client, void * dbr, char * pvname, size_t dbrsize, u
    // bool outcome = PutObjectDbrAsync(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name, object_key, dbr, dbrsize);
 }
 
+/*
 void *getdbr(void *s3Client, char *objectKey){
+    //for test
     Aws::String object_key = "zheng1:compressExample1679650152938633705";
     Aws::String bucket_name = "pvarray-bucket";
 
     return GetObjectDbr(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name, object_key);
 }
+*/
 
 void PutObjectAsyncFinished(const Aws::S3::S3Client *s3Client,
                             const Aws::S3::Model::PutObjectRequest &request,
                             const Aws::S3::Model::PutObjectOutcome &outcome,
                             const std::shared_ptr<const Aws::Client::AsyncCallerContext> &context) {
+    /*
     if (outcome.IsSuccess()) {
-       // std::cout << "Success: PutObjectAsyncFinished: Finished uploading '"
-        //          << context->GetUUID() << "'." << std::endl;
+        std::cout << "Success: PutObjectAsyncFinished: Finished uploading '"
+                 << context->GetUUID() << "'.\n" << std::endl;
     }
     else {
         std::cerr << "Error: PutObjectAsyncFinished: " <<
                   outcome.GetError().GetMessage() << std::endl;
     }
+    */
     //----------------------将父类指针转换为子类的指针-----------------------------------------------
     Aws::Client::ArchiveContext* myContext = const_cast<Aws::Client::ArchiveContext*>(dynamic_cast<const Aws::Client::ArchiveContext*>(context.get()));
     if(myContext==nullptr){
@@ -435,3 +483,80 @@ void PutObjectAsyncFinished(const Aws::S3::S3Client *s3Client,
     // Unblock the thread that is waiting for this function to complete.
     //upload_variable.notify_one();
 }
+
+/*
+void PutBucketLifecycleConfigurationFinished(const Aws::S3::S3Client *s3Client,
+                            const Aws::S3::Model::PutBucketLifecycleConfigurationRequest &request,
+                            const Aws::S3::Model::PutBucketLifecycleConfigurationOutcome &outcome,
+                            const std::shared_ptr<const Aws::Client::AsyncCallerContext> &context) {
+    
+    if (outcome.IsSuccess()) {
+       std::cout << "Success: PutBucketLifecycleConfigurationAsyncFinished: Finished uploading '"
+                 << context->GetUUID() << "'.\n" << std::endl;
+    }
+    else {
+        std::cerr << "Error: PutBucketLifecycleConfigurationAsyncFinished: " <<
+                  outcome.GetError().GetMessage() << std::endl;
+    }
+    
+    //----------------------将父类指针转换为子类的指针-----------------------------------------------
+    Aws::Client::ArchiveContext* myContext = const_cast<Aws::Client::ArchiveContext*>(dynamic_cast<const Aws::Client::ArchiveContext*>(context.get()));
+    if(myContext==nullptr){
+        std::cout << "Error when casting pointer type!"<< std::endl;
+        return;
+    }
+    //myContext->FreeBuff();
+
+    // Unblock the thread that is waiting for this function to complete.
+    //upload_variable.notify_one(); 
+}
+
+bool AddLifecycle(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName) {
+    //Aws::String ruleid = Aws::String("rule-") + bucketName;
+    std::cout << "Putting lifecycle configuration to bucket \"" << bucketName << "\" " << std::endl;
+    
+    Aws::S3::Model::LifecycleRuleFilter lcrf;
+    lcrf.SetPrefix("none");
+
+    Aws::S3::Model::LifecycleRule rule;
+    rule.SetID(bucketName);
+    rule.SetFilter(lcrf);
+    rule.SetStatus(Aws::S3::Model::ExpirationStatus::Enabled);
+
+    Aws::S3::Model::LifecycleExpiration expiration;
+    expiration.SetDays(30);
+    rule.SetExpiration(expiration);
+
+    Aws::S3::Model::BucketLifecycleConfiguration blccfg;
+    blccfg.AddRules(rule);
+
+    Aws::S3::Model::PutBucketLifecycleConfigurationRequest req; 
+    req.SetBucket(bucketName);
+    req.SetLifecycleConfiguration(blccfg);    
+
+    //std::shared_ptr<Aws::Client::ArchiveContext> context =
+    //    Aws::MakeShared<Aws::Client::ArchiveContext>("PutBucketLifecycleConfigurationAllocationTag");
+    //std::shared_ptr<Aws::Client::AsyncCallerContext> context = Aws::MakeShared<Aws::Client::AsyncCallerContext>("PutBucketLifecycleConfigurationAllocationTag");
+    //context->SetUUID(bucketName);
+    //context->SetBuffPointer(dbr);
+    Aws::S3::Model::PutBucketLifecycleConfigurationOutcome outcome = s3Client.PutBucketLifecycleConfiguration(req);//-----------------这里执行完报错
+    //s3Client.PutBucketLifecycleConfigurationAsync(req, PutBucketLifecycleConfigurationFinished, context);
+    //Aws::String error = outcome.GetError().GetMessage();
+
+    if(outcome.IsSuccess())
+    {
+        std::cout << "Lifecycle configuration set successfully for bucket: " << bucketName << std::endl;
+        return true;
+    } else {
+        std::cout<< "Failed to set lifecycle configuration for bucket: " << bucketName << std::endl;
+        std::cout << "Error: " << outcome.GetError().GetMessage() << std::endl;
+        return false;
+    } 
+}
+*/
+/*
+s3_upload_asyn函数内部在往桶内上传对象前先判断当日的桶是否存在，存在的则直接上传到当日桶内；
+否则先创建当日的桶，并调用AddLifecycle方法为该桶添加生命周期
+*/
+
+
