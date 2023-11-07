@@ -1,4 +1,7 @@
 #include "zmqInterface.h"
+#include "hdf5Interface.h"
+
+extern HASH_TABLE* pvtable;
 
 void* zmqPublisherInitial()
 {
@@ -8,23 +11,11 @@ void* zmqPublisherInitial()
     return publisher;
 }
 
-int sendArchiverCmd(void* publisher, ARCHIVE_MESSAGE message)
+int sendArchiverCmd(void* publisher, ARCHIVE_MESSAGE *message)
 {
-    zmq_send(publisher, &message, sizeof(ARCHIVE_MESSAGE), 0);
-}
-
-
-void *zmqSubscriber_thread(void *arg) {
-    void *context = zmq_ctx_new();
-    void *subscriber = zmq_socket(context, ZMQ_PULL);
-    // 连接到发布者
-    zmq_connect(subscriber, INPROC);
-
-
-    // 接收消息
-    ARCHIVE_MESSAGE buffer;
-    zmq_recv(subscriber, &buffer, sizeof( ARCHIVE_MESSAGE), 0);
-    //--------------打包和上传写咋i这里--------------------
-    //--------------不要忘记释放pdata指针------------------ 
+    
+    zmq_send(publisher, message, sizeof(ARCHIVE_MESSAGE), 0);
+    //zmq_send(publisher, "zmq send test buffer.", 21, 0);
+    //printf("send archive message, pvname:%s, array_count:%d\n", message.pvname, message.array_count);
     
 }

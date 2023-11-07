@@ -709,3 +709,70 @@ void PvArray2TD(TAOS * taos, unsigned long ts, char* pvname, long type, long cou
     }
     taos_free_result(result);
 }
+
+void Hdf2TD(TAOS * taos, char * ts, char* pvname, long count)
+{
+    TAOS_RES* result;
+    char sql[256];
+    char* errstr;
+    sprintf(sql, "insert into hdfref.`%s` using hdfref.ref tags(0) values (\'%s\', %lu); \n ", pvname, ts, count);
+
+    
+    result = taos_query(Archiver->taos, sql);
+    int errno = taos_errno(result);
+    if (result == NULL || errno != 0) {//如果taos_errno返回0说明执行成功
+        printf("failed to insert row: %s, reason: %s\n", sql, taos_errstr(result));
+        syslog(LOG_USER|LOG_INFO,"TDengine insert error\n");
+        taos_free_result(result);
+        if(errno == -2147482752) {//"Database not specified or available"，建库并且建超级表，之后再执行一遍插入
+            printf("Database not specified or available\n");
+            result = taos_query(Archiver->taos, "create database if not exists hdfref keep 90;");
+            taos_free_result(result);
+            printf("Database hdfref created!\n");
+            result = taos_query(Archiver->taos, "use hdfref;");
+            taos_free_result(result);
+            printf("Using database hdfref...\n");
+            result = taos_query(Archiver->taos, "create stable if not exists ref(ts TIMESTAMP, count BIGINT) tags(groupId INT);");
+            taos_free_result(result);
+            printf("Stable ref created!\n");
+            result = taos_query(Archiver->taos, sql);
+            errno = taos_errno(result);
+            printf("error:%d\n", errno);
+            taos_free_result(result);
+        } 
+        if(errno == -2147482782) {//"Table does not exist"，有库没表，建超级表，之后再执行一次插入
+            printf("Table does not exist\n");
+            result = taos_query(Archiver->taos, "use hdfref;");
+            taos_free_result(result);
+            printf("Using database hdfref...\n");
+            result = taos_query(Archiver->taos, "create stable if not exists ref(ts TIMESTAMP, count BIGINT) tags(groupId INT);");
+            taos_free_result(result);
+            printf("Stable ref created!\n");
+            result = taos_query(Archiver->taos, sql);
+            errno = taos_errno(result);
+            printf("error:%d\n", errno);
+            taos_free_result(result);
+        }
+
+        //exit(1);
+        //通过返回的errono判断是否断线，如果断线则重新连接
+        //错误代码参照：https://www.bookstack.cn/read/TDengin-2.0-zh/9436ce1aea0b27a2.md
+        //“Unable to establish connection”：-2147483637
+        //“Disconnected from service”：-2147483117
+        if(errno == -2147483637 || errno == -2147483117) {
+        
+	        syslog(LOG_USER|LOG_INFO,"TDengine disconnected error\n");//将错误写入日志
+            while(Archiver->taos == NULL) {
+			    
+			    Archiver->taos = TaosConnect();//如果连接中断，重新连接
+                sleep(5);
+		    }     
+        }
+
+    } else {
+        #ifdef DEBUG
+        printf("insert row: %s result: success\n", sql);
+        #endif
+    }
+    taos_free_result(result);
+}

@@ -75,20 +75,23 @@ extern "C" {
 void aws_initAPI();
 void aws_shutdownAPI();
 void *s3Client_init();
-void s3_upload(void *s3client, void * dbr, char * pvname, size_t dbrsize, unsigned long time);
+void s3_upload(void *s3client, char * filename, void *file_image, size_t file_size);
+void s3UploadHDFtest(void *s3client, char * filename);
 void s3_upload_asyn(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsigned long time, unsigned long midnight_ts);
 bool ListBuckets(const Aws::S3::S3Client& s3Client);
 bool CreateBucket(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName);
 bool DeleteBucket(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName);
 bool PutObjectFile(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, const Aws::String& fileName);
-
+//for test
+bool PutHDFFiletest(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, const Aws::String& fileName);
+void removeHDF(const char * filename);
 void PutObjectAsyncFinished(const Aws::S3::S3Client *s3Client,
                             const Aws::S3::Model::PutObjectRequest &request,
                             const Aws::S3::Model::PutObjectOutcome &outcome,
                             const std::shared_ptr<const Aws::Client::AsyncCallerContext> &context);
                            
 // void PutBucketLifecycleConfigurationFinished(const Aws::S3::S3Client *s3Client, const Aws::S3::Model::PutBucketLifecycleConfigurationRequest &request, const Aws::S3::Model::PutBucketLifecycleConfigurationOutcome &outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext> &context);
-// bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *dbr, size_t dbrsize);
+bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *file_image, size_t file_size);
 bool PutObjectDbrAsync(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *dbr, size_t dbrsize);
 //void *GetObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey);
 bool DeleteObject(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey);

@@ -24,4 +24,4 @@ fifo.o: ../fifo.c ../archiver.h \
  /home/centos/EPICS/epics-base/include/caeventmask.h \
  /home/centos/EPICS/epics-base/include/os/Linux/epicsGetopt.h \
  ../tool_lib.h /home/centos/EPICS/epics-base/include/epicsTime.h \
- ../fifo.h ../taos_interface.h
+ ../fifo.h ../taos_interface.h ../loadConfig.h

@@ -13,6 +13,7 @@
 #include <cantProceed.h>
 #include "zmqInterface.h"
 
+
 #define HASH_TABLE_LENGTH 100000
 
 typedef struct array_data
@@ -35,13 +36,14 @@ typedef struct hash_table_element{
     DATA_ELEMENT         *pdata_head;             // 数组缓存链表头
     DATA_ELEMENT         *pdata_tail;             // 数组缓存链表尾
     struct hash_table_element   *next;            //当发生哈希碰撞时，用链表保存相同哈希值的元素
+    int                  sflag;
 }HASH_TABLE_ELEMENT;
 
 
-typedef struct hash_tabe{
+typedef struct hash_table{
     long            maxsize;   /* type of pv */ 
     long            currentsize;                      //当前缓存总大小
-    epicsMutexId bufferLock;                          //读写锁
+    epicsMutexId    bufferLock;                          //读写锁
     HASH_TABLE_ELEMENT  *hashtable[HASH_TABLE_LENGTH];         /* value of the pv */
     void* zmq_publisher;                //ZMQ句柄                **********增加*****************
 }HASH_TABLE;
@@ -56,10 +58,15 @@ typedef struct hash_tabe{
 typedef int16_t linklist_error;
 
 unsigned long hash(unsigned char *str);
-linklist_error arraybuffer_initial(HASH_TABLE * pvtable);
+linklist_error arraybuffer_initial(HASH_TABLE * pvtable, void *zmqpublisher);
 ARRAY_DATA readarray(HASH_TABLE *pvtable,char * pvname);            //pbuff，指向数据指针的指针
 linklist_error writearray(HASH_TABLE *pvtable, char * pvname, ARRAY_DATA data);
 
 ARRAY_DATA readarray_ts(HASH_TABLE *pvtable,char * pvname);            //zero-copy read    用完之后，一定要释放pdata指针
 linklist_error writearray_ts(HASH_TABLE *pvtable, char * pvname, ARRAY_DATA data);   //zero-copy write
 linklist_error writearray_epics(HASH_TABLE *pvtable, struct event_handler_args eha);   
+int get_sflag(HASH_TABLE *pvtable, char * pvname);
+void set_sflag(HASH_TABLE *pvtable, char * pvname, int sflag);
+
+HASH_TABLE_ELEMENT* getHashTableElement(HASH_TABLE *pvtable, char * pvname);
+HASH_TABLE_ELEMENT* addHashTableElement(HASH_TABLE *pvtable, char * pvname);

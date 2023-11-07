@@ -25,7 +25,9 @@ caMonitor.o: ../caMonitor.c \
  /home/centos/EPICS/epics-base/include/os/Linux/osdMutex.h \
  /home/centos/EPICS/epics-base/include/epicsThread.h ../tool_lib.h \
  /home/centos/EPICS/epics-base/include/epicsTime.h ../fifo.h \
- ../taos_interface.h /home/centos/EPICS/epics-base/include/epicsString.h \
+ ../taos_interface.h ../loadConfig.h ../uploader.h ../zmqInterface.h \
+ ../arraybuffer.h /home/centos/EPICS/epics-base/include/cantProceed.h \
+ ../tool_lib.h ../hdf5Interface.h \
  /home/centos/EPICS/hdfsupport/include/hdf5.h \
  /home/centos/EPICS/hdfsupport/include/H5public.h \
  /home/centos/EPICS/hdfsupport/include/H5pubconf.h \
@@ -62,4 +64,5 @@ caMonitor.o: ../caMonitor.c \
  /home/centos/EPICS/hdfsupport/include/H5FDros3.h \
  /home/centos/EPICS/hdfsupport/include/H5FDsec2.h \
  /home/centos/EPICS/hdfsupport/include/H5FDsplitter.h \
- /home/centos/EPICS/hdfsupport/include/H5FDstdio.h
+ /home/centos/EPICS/hdfsupport/include/H5FDstdio.h \
+ /home/centos/EPICS/epics-base/include/epicsString.h

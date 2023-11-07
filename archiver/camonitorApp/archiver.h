@@ -13,6 +13,8 @@
 #include <syslog.h>
 #include "fifo.h"
 #include "taos_interface.h"
+#include "time.h"
+#include "loadConfig.h"
 
 
 
@@ -47,6 +49,7 @@ typedef struct{
     epicsEventId    evt_newdata_in;
     TAOS_STMT       *stmt;
     void            *s3client;
+    void            *zmqctx;
 } ARCHIVER;
 
 ARCHIVER* Archiver;
@@ -62,3 +65,4 @@ ARCHIVE_ERROR start_archive_thread(ARCHIVER *archiver);
 ARCHIVE_ERROR archiver_monitor_thread(ARCHIVER *archiver);
 
 ARCHIVE_ERROR start_archiver_monitor(ARCHIVER *archiver);
+

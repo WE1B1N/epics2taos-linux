@@ -145,8 +145,8 @@ bool PutObjectFile(const Aws::S3::S3Client& s3Client, const Aws::String& bucketN
     }
 }
 
-/*
-bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *dbr, size_t dbrsize){
+
+bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *file_image, size_t file_size){
     std::cout << "Putting object: \"" << objectKey << "\" to bucket: \"" << bucketName << "\" ..." << std::endl;
 
     Aws::S3::Model::PutObjectRequest request;
@@ -157,7 +157,7 @@ bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketNa
     
     auto data = Aws::MakeShared<Aws::StringStream>("PutObjectInputStream", std::stringstream::in | std::stringstream::out | std::stringstream::binary);
     
-    data->write(static_cast<char*>(dbr), dbrsize);
+    data->write(static_cast<char*>(file_image), file_size);
 
     request.SetBody(data);
 
@@ -172,7 +172,7 @@ bool PutObjectDbr(const Aws::S3::S3Client& s3Client, const Aws::String& bucketNa
     }
 
 }
-*/
+
 
 
 bool PutObjectDbrAsync(const Aws::S3::S3Client& s3Client, const Aws::String& bucketName, const Aws::String& objectKey, void *dbr, size_t dbrsize){
@@ -361,15 +361,15 @@ void * s3Client_init(){
    
 }
 
-/*
-void s3_upload(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsigned long time) {
+
+void s3_upload(void *s3client, char * filename, void *file_image, size_t file_size) {
 
 
     //Aws::S3::Model::PutObjectRequest request;
 
     //Aws::S3::Model::BucketLocationConstraint locConstraint = Aws::S3::Model::BucketLocationConstraintMapper::GetBucketLocationConstraintForName(region);
 
-    Aws::String bucket_name = "pvarray-bucket";
+    Aws::String bucket_name = "arraydata-bucket";
 
     //Aws::S3::Model::HeadBucketRequest hbr;
    // hbr.SetBucket(bucket_name);
@@ -380,13 +380,50 @@ void s3_upload(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsign
     //}    
 
     Aws::String object_key;
-    object_key = Aws::String((pvname + std::to_string(time)).c_str());
+    object_key = filename;
     //std::cout << object_key << std::endl << std::endl;
     //Aws::String bucket_name = "my-bucket";
-
-    bool outcome = PutObjectDbr(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name, object_key, dbr, dbrsize);
+    bool outcome = PutObjectDbr(*static_cast<Aws::S3::S3Client *>(s3client), bucket_name, object_key, file_image, file_size);
+    //bool outcome = PutObjectFile(*static_cast<Aws::S3::S3Client *>(s3client), bucket_name, object_key, filename);
 }
-*/
+
+void s3UploadHDFtest(void *s3client, char * filename) {
+
+
+    //Aws::S3::Model::PutObjectRequest request;
+
+    //Aws::S3::Model::BucketLocationConstraint locConstraint = Aws::S3::Model::BucketLocationConstraintMapper::GetBucketLocationConstraintForName(region);
+
+    Aws::String bucket_name = "arraydata-bucket";
+
+    //Aws::S3::Model::HeadBucketRequest hbr;
+   // hbr.SetBucket(bucket_name);
+
+    //如果bucket不存在，先创建bucket
+    //if(!(*static_cast<Aws::S3::S3Client *>(s3Client)).HeadBucket(hbr).IsSuccess()){
+    //    CreateBucket(*static_cast<Aws::S3::S3Client *>(s3Client), bucket_name, locConstraint);
+    //}    
+    Aws::String fpath = "/tmp/ramdisk/";
+    fpath += filename;
+
+    Aws::String object_key;
+    object_key = filename;
+    //std::cout << object_key << std::endl << std::endl;
+    //Aws::String bucket_name = "my-bucket";
+    bool outcome = PutObjectFile(*static_cast<Aws::S3::S3Client *>(s3client), bucket_name, object_key, fpath);
+    //bool outcome = PutObjectFile(*static_cast<Aws::S3::S3Client *>(s3client), bucket_name, object_key, filename);
+    
+    removeHDF(fpath.c_str());
+}
+
+void removeHDF(const char * filename) {
+    if(std::remove(filename) != 0) {    
+        perror("Error deleting file");
+
+    } else {
+        puts("File successfully deleted");
+    }
+}
 
 
 void s3_upload_asyn(void *s3Client, void * dbr, char * pvname, size_t dbrsize, unsigned long time, unsigned long midnight_ts) {

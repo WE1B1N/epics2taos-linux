@@ -24,4 +24,4 @@ taos_interface.o: ../taos_interface.c ../taos_interface.h \
  /home/centos/EPICS/epics-base/include/caeventmask.h \
  /home/centos/EPICS/epics-base/include/os/Linux/epicsGetopt.h \
  ../tool_lib.h /home/centos/EPICS/epics-base/include/epicsTime.h \
- ../archiver.h ../fifo.h
+ ../archiver.h ../fifo.h ../loadConfig.h

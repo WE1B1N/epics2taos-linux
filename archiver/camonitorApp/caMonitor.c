@@ -11,10 +11,11 @@
 #include <cadef.h>
 #include <epicsGetopt.h>
 #include "archiver.h"
+#include "uploader.h"
 #include <epicsTime.h>
 #include <epicsString.h>
-#include "hdf5.h"
-
+#include "arraybuffer.h"
+#include <pthread.h>
 
 
 #define VALID_DOUBLE_DIGITS 18  /* Max usable precision for a double */
@@ -24,6 +25,7 @@ static int floatAsString = 0;                             /* Flag: fetch floats 
 static int nConn = 0;                                     /* Number of connected PVs */
 
 ARCHIVER* Archiver; 
+HASH_TABLE* pvtable;
 
 static void printChidInfo(chid chid, char *message)
 {
@@ -103,7 +105,6 @@ static void eventCallback(struct event_handler_args eha)
     //printf("pvname:%s, status:%d, count:%d\n", pv->name, eha.status, eha.count);
     if (eha.status == ECA_NORMAL)
     { 
-         
         //pv->dbrType = eha.type;
             //pv->nElems = eha.count;
             //pv->value = (void *) eha.dbr;    /* casting away const */
@@ -115,6 +116,21 @@ static void eventCallback(struct event_handler_args eha)
         pv->callbackCounts++; 
         if (eha.count > 1)
         {
+            //对长度大于1的数组数据，写入hash table
+            void * ptest;
+            ptest=eha.dbr;
+
+            writearray_epics(pvtable, eha);
+
+            /*
+            if(writearray_epics(pvtable, eha)) {
+                printf("write array succeed!");
+            } else {
+                printf("write array error!");
+            }
+            */
+            
+            /*
             //pv->callbackCounts2++; 
             //void * pvalue = dbr2parray(eha.dbr,eha.type);
             size_t dbrsize = dbr_size_n(eha.type, eha.count);
@@ -134,13 +150,7 @@ static void eventCallback(struct event_handler_args eha)
             //memcpy(buff,eha.dbr,dbrsize);
             s3_upload_asyn(Archiver->s3client, eha.dbr, pvname, dbrsize, taosts, midnight_ts);
             PvArray2TD(Archiver->taos, taosts, pvname, eha.type, eha.count, status, sev, midnight_ts);
-            //free(buff);
-            /*
-            int i = 0;
-            for (i = 0; i < 10; i++) {
-                //printf("test%d:%f\n", i, ((struct dbr_time_double*)(&eha.dbr[ 8 * i]))->value);//测试                
-            } 
-            */ 
+            */         
         }  else {
             //pv->callbackCounts1++;
             archive_pv(eha);
@@ -245,6 +255,15 @@ int main(int argc,char **argv)
     Archiver = archive_initial();
     printf("archiver initilized!\n");
     syslog(LOG_USER|LOG_INFO,"archiver initilized!\n"); 
+    pvtable = (HASH_TABLE *)callocMustSucceed(1, sizeof(HASH_TABLE), "pvtable");
+    
+    void *zmqcontext = zmq_ctx_new();
+    printf("zmq context initilized!\n");
+    void *zmqpublisher = zmq_socket(zmqcontext, ZMQ_PUSH);
+    //void *zmqpublisher = zmq_socket(zmqcontext, ZMQ_ROUTER);
+    zmq_bind(zmqpublisher, INPROC);
+    arraybuffer_initial(pvtable, zmqpublisher);
+    printf("hash table initilized!\n");
 
     //void* dbr = getdbr(Archiver->s3client, "test");
     
@@ -279,8 +298,8 @@ int main(int argc,char **argv)
     //     printf("pmynode[%d] address in main func = %p\n", i, pmynode[i]);      
     // }
     
-    //-------------------------------hdf test-----------------------------
-    /* 
+    //-------------------------------hdf test begin-----------------------------
+    /*
     hid_t file_id, dataset_id, dataspace_id;
     hsize_t dims[2] = {2, 2};
     int data[2][2] = {{11, 12}, {21, 22}};
@@ -294,16 +313,30 @@ int main(int argc,char **argv)
     H5Sclose(dataspace_id);
     H5Fclose(file_id); 
     */
-    //-------------------------------hdf test----------------------------- 
-    
+    //-------------------------------hdf test end----------------------------- 
+
     Archiver->nodelist = pmynode;
     Archiver->nPv = npv;
+    Archiver->zmqctx = zmqcontext;
     printf("Setup monitor!\n");
     syslog(LOG_USER|LOG_INFO,"Setup monitor!\n"); 
     start_archive_thread(Archiver);          //启动读取线程，将fifo中的数据读出来写入TDengine
     printf("archiver thread started!\n");
     syslog(LOG_USER|LOG_INFO,"archiver thread started!\n"); 
-    
+    //创建订阅线程
+    pthread_t hdf_thread;
+    pthread_create(&hdf_thread, NULL, HDF_SAVE_thread, NULL);
+    //多消费线程测试
+    /*
+    pthread_t sub_thread[5];
+    int thread_i;
+    int thread_nums[5] = {1,2,3,4,5};
+    for(thread_i  = 0; thread_i < 5; thread_i ++) {
+        //pthread_create(&sub_thread[thread_i], NULL, HDF_SAVE_thread, zmqcontext);
+        pthread_create(&sub_thread[thread_i], NULL, HDF_SAVE_thread1, &thread_nums[thread_i]);
+    }
+    */
+
     SEVCHK(ca_context_create(ca_disable_preemptive_callback),"ca_context_create");
     SEVCHK(ca_add_exception_event(exceptionCallback,NULL),
         "ca_add_exception_event");

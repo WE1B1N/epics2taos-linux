@@ -83,7 +83,14 @@
         "cinttypes": "cpp",
         "s3.h": "c",
         "outcome.h": "c",
-        "zmq.h": "c"
+        "zmq.h": "c",
+        "epicsstring.h": "c",
+        "arraybuffer.h": "c",
+        "stdio.h": "c",
+        "zmqinterface.h": "c",
+        "epicstime.h": "c",
+        "hdf5interface.h": "c",
+        "uploader.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

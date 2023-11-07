@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/linux-x86_64/caMonitor",
             "args": [
-                "${workspaceFolder}/bin/linux-x86_64/arraydata"
+                "${workspaceFolder}/bin/linux-x86_64/arraydata_test"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
